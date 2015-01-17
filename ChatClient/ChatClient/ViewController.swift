@@ -56,7 +56,7 @@ class ViewController: NSViewController {
 		weak var weakSelf = self
 		dispatch_async(dispatch_get_main_queue()) {
 			if let s = weakSelf {
-				s.sendSynchronousText(text)
+				s.sendText(text)
 			}
 		}
 	}
@@ -66,7 +66,7 @@ class ViewController: NSViewController {
 		historyTextView.append(appendText)
 	}
 
-	func sendSynchronousText(text: String) {
+	func sendText(text: String) {
 		let server = ServerSettings.sharedInstance.server
 		let endpoint: NSURL! = NSURL(string: server)
 		let urlComponents = NSURLComponents(URL: endpoint, resolvingAgainstBaseURL: false)
