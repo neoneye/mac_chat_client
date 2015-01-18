@@ -16,12 +16,12 @@ class ViewController: NSViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
-		serverTextField.placeholderString = "http://localhost:1234/"
+		serverTextField.placeholderString = "https://localhost:8334/graph/123/command"
 		serverTextField.target = self
 		serverTextField.action = Selector("serverTextFieldAction")
 		
 		if ServerSettings.sharedInstance.server.isEmpty {
-			ServerSettings.sharedInstance.server = "http://localhost:1234/"
+			ServerSettings.sharedInstance.server = "https://localhost:8334/graph/123/command"
 		}
 		let server = ServerSettings.sharedInstance.server
 		if !server.isEmpty {
@@ -67,19 +67,35 @@ class ViewController: NSViewController {
 	}
 
 	func sendText(text: String) {
+		var dict = Dictionary<String, AnyObject>()
+		dict["command"] = text
+		
+		// convert dictionary to json data
+		var error: NSError?
+		let data = NSJSONSerialization.dataWithJSONObject(dict, options: nil, error: &error)
+		if let error = error {
+			showFailure(error)
+			return
+		}
+		if data == nil {
+			showReply("could not serialize to json")
+			return
+		}
+		
+		// create a POST request
 		let server = ServerSettings.sharedInstance.server
-		let endpoint: NSURL! = NSURL(string: server)
-		let urlComponents = NSURLComponents(URL: endpoint, resolvingAgainstBaseURL: false)
-		urlComponents?.path = "/chat"
-		urlComponents?.query = "message=" + text.urlEncode()
-		let url: NSURL? = urlComponents?.URL
+		let url: NSURL! = NSURL(string: server)
 		if url == nil {
 			println("error invalid url \(url)")
 			showReply("error invalid url \(url)")
 			return
 		}
-		let request = NSURLRequest(URL: url!)
+		let request = NSMutableURLRequest(URL: url!, cachePolicy: .UseProtocolCachePolicy, timeoutInterval: 15)
+		request.HTTPMethod = "POST"
+		request.HTTPBody = data
+		request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+		// execute the POST request
 		NetworkManager.sharedInstance.execute(request) { (result: NetworkManagerResult) -> Void in
 			switch result {
 			case let .Success(data):

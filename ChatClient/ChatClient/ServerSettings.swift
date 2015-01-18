@@ -20,7 +20,7 @@ class ServerSettings {
 		get {
 			var returnValue: String? = NSUserDefaults.standardUserDefaults().objectForKey("the-server") as? String
 			if returnValue == nil {
-				returnValue = "http://localhost/"
+				returnValue = "https://localhost:8334/graph/123/command"
 			}
 			return returnValue!
 		}
